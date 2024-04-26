@@ -36,9 +36,6 @@ export async function downloadFile(url: string, fileName: string) {
 			console.error(error);
 			return false;
 		});
-
-	// Mengembalikan promise yang diproduksi oleh axios
-	return jobs[id];
 }
 
 export async function cancelDownload() {}
