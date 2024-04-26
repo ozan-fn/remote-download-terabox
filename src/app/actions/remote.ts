@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import qs from "qs";
 import FormData from "form-data";
 
-let jobs: { [id: string]: AxiosResponse<any, any> } = {};
+let jobs: { [id: string]: Promise<boolean> } = {};
 let status: { [id: string]: AxiosProgressEvent & { fileName: string } } = {};
 let results: { [id: string]: any } = {};
 
@@ -20,16 +20,25 @@ export async function getStatus() {
 
 export async function downloadFile(url: string, fileName: string) {
 	const id = uuidv4();
-	jobs[id] = await axios(url, {
+	jobs[id] = axios(url, {
 		responseType: "arraybuffer",
 		onDownloadProgress: (progressEvent: AxiosProgressEvent) => {
 			const progressWithFileName = progressEvent as AxiosProgressEvent & { fileName: string };
 			progressWithFileName.fileName = fileName;
 			status[id] = progressWithFileName;
 		},
-	});
-	results[id] = jobs[id].data;
-	return true;
+	})
+		.then((response) => {
+			results[id] = response.data;
+			return true;
+		})
+		.catch((error) => {
+			console.error(error);
+			return false;
+		});
+
+	// Mengembalikan promise yang diproduksi oleh axios
+	return jobs[id];
 }
 
 export async function cancelDownload() {}
